@@ -1,0 +1,33 @@
+# Publishes dist/index.html to GitHub Pages so phones can use location (browsers only give it to https pages).
+# One-time setup: Settings, Pages, Build and deployment, Source: GitHub Actions.
+name: Publish to GitHub Pages
+on:
+  push:
+    branches: [main]
+    paths: [dist/**]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: true
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Stage the single-file app
+        run: |
+          mkdir -p site
+          cp dist/index.html site/index.html
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: deploy
+        uses: actions/deploy-pages@v4
